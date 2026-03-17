@@ -1,4 +1,6 @@
-// Global database hook (stub). Will provide SQLite + MMKV access.
+import { getDb } from "@/db";
+
+
 export function useDatabase() {
-  return {};
+  return { db: getDb() };
 }

@@ -89,5 +89,6 @@ src/
 ## ⚠️ Critical Constraints
 
 - **No Expo Go:** Strictly target Development Builds.
+- **NO UNNCESSARY README.md DOCS CREATION:** Do not create any README.md unless I explicitly request it.
 - **No Financial APIs:** Data must be strictly local and mocked.
 - **Strictly Functional:** Responses must be technical, dry, and direct. No filler or value judgments.
