@@ -1,21 +1,32 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { getThemeColors, type ColorScheme, type ThemeColors } from './theme';
+import { getStoredColorScheme, setStoredColorScheme } from './storage';
 
 type ThemeContextValue = {
   colorScheme: ColorScheme;
   themeColors: ThemeColors;
+  setColorScheme: (scheme: ColorScheme) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const colorScheme: ColorScheme = systemScheme === 'dark' ? 'dark' : 'light';
+  const stored = getStoredColorScheme();
+  const initialScheme: ColorScheme =
+    stored ?? (systemScheme === 'dark' ? 'dark' : 'light');
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(initialScheme);
+
+  const setColorScheme = useCallback((scheme: ColorScheme) => {
+    setStoredColorScheme(scheme);
+    setColorSchemeState(scheme);
+  }, []);
+
   const themeColors = useMemo(() => getThemeColors(colorScheme), [colorScheme]);
   const value = useMemo(
-    () => ({ colorScheme, themeColors }),
-    [colorScheme, themeColors]
+    () => ({ colorScheme, themeColors, setColorScheme }),
+    [colorScheme, themeColors, setColorScheme]
   );
   return (
     <ThemeContext.Provider value={value}>

@@ -51,6 +51,41 @@ const transactionsRows: Array<{
   { id: '3', date: 'Jun 11, 2025', name: 'DELTA AIR LINES ATLANTA', identifier: '11000', tier: 'Platinum', amount: 348.49, category_id: null, reviewed: 0 },
   { id: '4', date: 'Jun 3, 2025', name: 'DELTA AIR LINES ATLANTA', identifier: '11000', tier: 'Platinum', amount: 241.18, category_id: null, reviewed: 0 },
   { id: '5', date: 'May 28, 2025', name: 'DELTA AIR LINES ATLANTA', identifier: '11000', tier: 'Platinum', amount: 278.48, category_id: null, reviewed: 0 },
+  { id: '6', date: 'Today', name: 'Urban Outfitters', identifier: '', tier: '', amount: 93.42, category_id: '4-1', reviewed: 0 },
+];
+
+const goalsRows: Array<{
+  id: string;
+  name: string;
+  target_amount: number;
+  saved_amount: number;
+  target_date: string | null;
+  status: string;
+}> = [
+  { id: '1', name: 'New Car', target_amount: 10000, saved_amount: 7030, target_date: 'May 2026', status: 'active' },
+  { id: '2', name: 'Emergency Fund', target_amount: 10000, saved_amount: 7000, target_date: null, status: 'active' },
+  { id: '3', name: 'Japan Trip', target_amount: 3000, saved_amount: 735, target_date: 'Nov 2026', status: 'active' },
+  { id: '4', name: 'Wedding Fund', target_amount: 5000, saved_amount: 0, target_date: null, status: 'ready' },
+];
+
+const recurringsRows: Array<{
+  id: string;
+  name: string;
+  amount: number;
+  due_day: number;
+  icon: string | null;
+  paid: number;
+  month: string;
+}> = [
+  { id: '1', name: 'Spotify', amount: 9.99, due_day: 1, icon: 'musical-notes', paid: 1, month: MONTH },
+  { id: '2', name: 'Property Payment Rent Ca', amount: 1984, due_day: 4, icon: 'home', paid: 1, month: MONTH },
+  { id: '3', name: 'Car Payment', amount: 420, due_day: 5, icon: 'car', paid: 1, month: MONTH },
+  { id: '4', name: 'Namecheap', amount: 14.99, due_day: 8, icon: 'globe-outline', paid: 1, month: MONTH },
+  { id: '5', name: 'Rayne Water Ca', amount: 85, due_day: 12, icon: 'water-outline', paid: 1, month: MONTH },
+  { id: '6', name: 'Lemonade Insurance', amount: 25, due_day: 15, icon: 'shield-checkmark', paid: 1, month: MONTH },
+  { id: '7', name: 'Audible', amount: 14.95, due_day: 18, icon: 'book-outline', paid: 0, month: MONTH },
+  { id: '8', name: 'Hulu', amount: 12.99, due_day: 22, icon: 'tv-outline', paid: 0, month: MONTH },
+  { id: '9', name: 'Netflix', amount: 15.99, due_day: 28, icon: 'tv-outline', paid: 0, month: MONTH },
 ];
 
 const receiptsRows: Array<{ id: string; merchant_name: string; date: string; amount: number }> = [
@@ -124,6 +159,29 @@ export function seedDatabase(db: SQLiteDatabase): void {
       row.spend,
       row.rewards,
       row.rate
+    );
+  }
+  for (const row of goalsRows) {
+    db.runSync(
+      'INSERT OR IGNORE INTO goals (id, name, target_amount, saved_amount, target_date, status) VALUES (?, ?, ?, ?, ?, ?)',
+      row.id,
+      row.name,
+      row.target_amount,
+      row.saved_amount,
+      row.target_date,
+      row.status
+    );
+  }
+  for (const row of recurringsRows) {
+    db.runSync(
+      'INSERT OR IGNORE INTO recurrings (id, name, amount, due_day, icon, paid, month) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      row.id,
+      row.name,
+      row.amount,
+      row.due_day,
+      row.icon,
+      row.paid,
+      row.month
     );
   }
   db.runSync('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)', 'seeded', '1');

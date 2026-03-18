@@ -1,7 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/core/ThemeContext';
-import { useGlassCapability } from '@/hooks/use-glass-capability';
 import { TabIndex, TAB_LABELS } from '@/core/types';
 
 const TABS = [TabIndex.Dashboard, TabIndex.Categories, TabIndex.Recurrings, TabIndex.Goals];
@@ -9,18 +8,37 @@ const TABS = [TabIndex.Dashboard, TabIndex.Categories, TabIndex.Recurrings, TabI
 type Props = {
   selectedIndex: number;
   onSelectIndex: (index: number) => void;
+  /** When true, bar is on primary bg: unselected = white text; selected = secondary pill or white pill */
+  onPrimaryBackground?: boolean;
+  /** When true with onPrimaryBackground, selected tab uses secondary (light blue) pill; else white pill */
+  selectedPillSecondary?: boolean;
+  rightElement?: React.ReactNode;
 };
 
-export function SegmentedControl({ selectedIndex, onSelectIndex }: Props) {
+export function SegmentedControl({
+  selectedIndex,
+  onSelectIndex,
+  onPrimaryBackground,
+  selectedPillSecondary,
+  rightElement,
+}: Props) {
   const { themeColors } = useTheme();
-  const isGlass = useGlassCapability();
 
-  const containerStyle = isGlass
-    ? [styles.container, styles.containerGlass]
-    : [styles.container, { backgroundColor: themeColors.surface }];
+  const unselectedColor = onPrimaryBackground ? themeColors.text.inverse : themeColors.text.secondary;
+  const selectedBg = onPrimaryBackground
+    ? selectedPillSecondary
+      ? themeColors.secondary
+      : themeColors.text.inverse
+    : themeColors.primary;
+  const selectedColor =
+    onPrimaryBackground
+      ? selectedPillSecondary
+        ? themeColors.primary
+        : themeColors.text.main
+      : themeColors.text.inverse;
 
   return (
-    <View style={containerStyle}>
+    <View style={[styles.container, onPrimaryBackground && styles.containerTransparent]}>
       <View style={styles.segmentRow}>
         {TABS.map((tab) => {
           const isSelected = selectedIndex === tab;
@@ -31,17 +49,12 @@ export function SegmentedControl({ selectedIndex, onSelectIndex }: Props) {
               onPress={() => onSelectIndex(tab)}
               style={({ pressed }) => [
                 styles.segment,
-                isSelected && { backgroundColor: themeColors.primary },
+                isSelected && { backgroundColor: selectedBg },
                 pressed && styles.segmentPressed,
               ]}
             >
               <Text
-                style={[
-                  styles.label,
-                  {
-                    color: isSelected ? themeColors.text.inverse : themeColors.text.secondary,
-                  },
-                ]}
+                style={[styles.label, { color: isSelected ? selectedColor : unselectedColor }]}
                 numberOfLines={1}
               >
                 {label}
@@ -49,6 +62,7 @@ export function SegmentedControl({ selectedIndex, onSelectIndex }: Props) {
             </Pressable>
           );
         })}
+        {rightElement != null ? <View style={styles.rightSlot}>{rightElement}</View> : null}
       </View>
     </View>
   );
@@ -59,22 +73,24 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
-  containerGlass: {
+  containerTransparent: {
     backgroundColor: 'transparent',
   },
   segmentRow: {
     flexDirection: 'row',
-    borderRadius: 10,
-    overflow: 'hidden',
-    gap: 4,
+    gap: 6,
+    alignItems: 'center',
   },
   segment: {
     flex: 1,
     paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
+    borderRadius: 999,
+  },
+  rightSlot: {
+    marginLeft: 8,
   },
   segmentPressed: {
     opacity: 0.8,

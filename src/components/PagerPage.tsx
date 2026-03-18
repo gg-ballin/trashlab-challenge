@@ -44,6 +44,5 @@ export function PagerPage({ pageIndex, scrollPosition, scrollOffset, children }:
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: 'red',
   },
 });

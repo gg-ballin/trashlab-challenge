@@ -1,21 +1,25 @@
 import { useCallback, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue } from 'react-native-reanimated';
+import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { PagerPage } from '@/components/PagerPage';
 import { useTheme } from '@/core/ThemeContext';
 import { TabIndex } from '@/core/types';
-import { CategoriesScreen } from '@/features/categories';
 import { DashboardScreen } from '@/features/dashboard';
-import { GoalsScreen } from '@/features/goals';
+import { CategoriesScreen } from '@/features/categories';
 import { RecurringsScreen } from '@/features/recurrings';
+import { GoalsScreen } from '@/features/goals';
+
+const logoSource = require('@/../assets/images/image.png');
 
 export default function Index() {
   const insets = useSafeAreaInsets();
-  const { themeColors } = useTheme();
+  const { themeColors, setColorScheme, colorScheme } = useTheme();
   const [selectedIndex, setSelectedIndex] = useState(TabIndex.Dashboard);
   const pagerRef = useRef<PagerView>(null);
   const scrollPosition = useSharedValue(0);
@@ -38,10 +42,37 @@ export default function Index() {
     pagerRef.current?.setPage(index);
   }, []);
 
+  const headerBg = { backgroundColor: themeColors.primary };
+
+  const toggleTheme = useCallback(() => {
+    setColorScheme(colorScheme === 'light' ? 'dark' : 'light');
+  }, [colorScheme, setColorScheme]);
+
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
-      <View style={styles.segmentBar}>
-        <SegmentedControl selectedIndex={selectedIndex} onSelectIndex={onSelectIndex} />
+    <View style={styles.container}>
+      <View style={[styles.headerSection, headerBg, { paddingTop: insets.top }]}>
+        <View style={[styles.header, headerBg]}>
+          <Image source={logoSource} contentFit="contain" style={styles.logo} />
+          <Pressable
+            onPress={toggleTheme}
+            style={styles.themeToggle}
+            hitSlop={8}
+          >
+            <Ionicons
+              name={colorScheme === 'light' ? 'moon-outline' : 'sunny-outline'}
+              size={24}
+              color={themeColors.text.inverse}
+            />
+          </Pressable>
+        </View>
+        <View style={[styles.segmentBar, headerBg]}>
+          <SegmentedControl
+            selectedIndex={selectedIndex}
+            onSelectIndex={onSelectIndex}
+            onPrimaryBackground
+            selectedPillSecondary
+          />
+        </View>
       </View>
       <PagerView
         ref={pagerRef}
@@ -79,6 +110,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerSection: {
+    // Primary blue from top of screen (covers SafeAreaView) through segment bar
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: 8,
+    paddingRight: 16,
+    paddingVertical: 12,
+  },
+  logo: {
+    width: 120,
+    height: 40,
+    marginLeft: 0,
+  },
+  themeToggle: {
+    padding: 4,
+  },
   segmentBar: {
     paddingHorizontal: 0,
   },
@@ -87,5 +137,14 @@ const styles = StyleSheet.create({
   },
   page: {
     flex: 1,
+  },
+  bottomBar: {
+    paddingTop: 12,
+    paddingHorizontal: 24,
+  },
+  bottomIcons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
 });
