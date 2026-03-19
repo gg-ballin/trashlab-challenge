@@ -30,7 +30,9 @@ const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
 
 const CHECKMARK_COLORS = ['#EC4899', '#F97316', '#06B6D4', '#3B82F6', '#FFFFFF'];
 
-export function RecurringsScreen() {
+type RecurringsScreenProps = { focusKey?: number };
+
+export function RecurringsScreen({ focusKey = 0 }: RecurringsScreenProps) {
   const { themeColors, fontFamily } = useTheme();
   const summary = useMemo(() => {
     try {
@@ -75,7 +77,7 @@ export function RecurringsScreen() {
               </Text>
             </View>
             <View style={styles.summaryChartWrap}>
-              <CategoriesDonut segments={donutSegments} size={56} />
+              <CategoriesDonut segments={donutSegments} size={56} triggerKey={focusKey} />
             </View>
             <View style={styles.summaryBlockRight}>
               <Text style={[styles.summaryValue, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>

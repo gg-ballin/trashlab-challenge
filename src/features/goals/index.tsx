@@ -14,7 +14,9 @@ const GOAL_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
   'heart',
 ];
 
-export function GoalsScreen() {
+type GoalsScreenProps = { focusKey?: number };
+
+export function GoalsScreen({ focusKey = 0 }: GoalsScreenProps) {
   const { themeColors, fontFamily } = useTheme();
   const summary = useMemo(() => {
     try {
@@ -66,7 +68,7 @@ export function GoalsScreen() {
               </Text>
             </View>
             <View style={styles.summaryChartWrap}>
-              <CategoriesDonut segments={donutSegments} size={56} />
+              <CategoriesDonut segments={donutSegments} size={56} triggerKey={focusKey} />
             </View>
             <View style={styles.summaryBlockRight}>
               <Text style={[styles.summaryValue, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>

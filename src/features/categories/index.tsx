@@ -13,7 +13,9 @@ function progressBarColor(pct: number): string {
   return '#059669';
 }
 
-export function CategoriesScreen() {
+type CategoriesScreenProps = { focusKey?: number };
+
+export function CategoriesScreen({ focusKey = 0 }: CategoriesScreenProps) {
   const { themeColors, fontFamily } = useTheme();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
   const didInitExpand = useRef(false);
@@ -76,7 +78,7 @@ export function CategoriesScreen() {
               </Text>
             </View>
             <View>
-              <CategoriesDonut segments={donutSegments} size={56} />
+              <CategoriesDonut segments={donutSegments} size={56} triggerKey={focusKey} />
             </View>
             <View>
               <Text style={[styles.summaryValue, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>

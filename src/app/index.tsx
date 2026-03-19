@@ -14,7 +14,6 @@ import { DashboardScreen } from '@/features/dashboard';
 import { CategoriesScreen } from '@/features/categories';
 import { RecurringsScreen } from '@/features/recurrings';
 import { GoalsScreen } from '@/features/goals';
-import { theme } from 'theme';
 
 const logoSource = require('@/../assets/images/image.png');
 
@@ -22,6 +21,7 @@ export default function Index() {
   const insets = useSafeAreaInsets();
   const { themeColors, setColorScheme, colorScheme } = useTheme();
   const [selectedIndex, setSelectedIndex] = useState(TabIndex.Dashboard);
+  const [focusKeys, setFocusKeys] = useState(() => [0, 0, 0, 0]);
   const pagerRef = useRef<PagerView>(null);
   const scrollPosition = useSharedValue(0);
   const scrollOffset = useSharedValue(0);
@@ -35,7 +35,13 @@ export default function Index() {
   );
 
   const onPageSelected = useCallback((e: { nativeEvent: { position: number } }) => {
-    setSelectedIndex(e.nativeEvent.position);
+    const position = e.nativeEvent.position;
+    setSelectedIndex(position);
+    setFocusKeys((prev) => {
+      const next = [...prev];
+      next[position] = (next[position] ?? 0) + 1;
+      return next;
+    });
   }, []);
 
   const onSelectIndex = useCallback((index: number) => {
@@ -96,7 +102,7 @@ export default function Index() {
       </View>
       <PagerView
         ref={pagerRef}
-        style={styles.pager}
+        style={[styles.pager, { backgroundColor: themeColors.background }]}
         initialPage={TabIndex.Dashboard}
         onPageScroll={onPageScroll}
         onPageSelected={onPageSelected}
@@ -108,17 +114,17 @@ export default function Index() {
         </View>
         <View key="1" style={styles.page}>
           <PagerPage pageIndex={1} scrollPosition={scrollPosition} scrollOffset={scrollOffset}>
-            <CategoriesScreen />
+            <CategoriesScreen focusKey={focusKeys[1]} />
           </PagerPage>
         </View>
         <View key="2" style={styles.page}>
           <PagerPage pageIndex={2} scrollPosition={scrollPosition} scrollOffset={scrollOffset}>
-            <RecurringsScreen />
+            <RecurringsScreen focusKey={focusKeys[2]} />
           </PagerPage>
         </View>
         <View key="3" style={styles.page}>
           <PagerPage pageIndex={3} scrollPosition={scrollPosition} scrollOffset={scrollOffset}>
-            <GoalsScreen />
+            <GoalsScreen focusKey={focusKeys[3]} />
           </PagerPage>
         </View>
       </PagerView>
@@ -168,6 +174,7 @@ const styles = StyleSheet.create({
   },
   page: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   bottomBar: {
     paddingTop: 12,

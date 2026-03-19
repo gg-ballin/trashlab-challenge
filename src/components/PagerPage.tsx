@@ -24,13 +24,12 @@ export function PagerPage({ pageIndex, scrollPosition, scrollOffset, children }:
       [-PARALLAX_OFFSET, 0, PARALLAX_OFFSET]
     );
     return {
-      opacity: 1,
       transform: [{ translateX }],
     };
   });
 
   return (
-    <Animated.View style={[styles.page, animatedStyle]}>
+    <Animated.View style={[styles.page, animatedStyle]} collapsable={false}>
       {children}
     </Animated.View>
   );
@@ -39,5 +38,6 @@ export function PagerPage({ pageIndex, scrollPosition, scrollOffset, children }:
 const styles = StyleSheet.create({
   page: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
 });

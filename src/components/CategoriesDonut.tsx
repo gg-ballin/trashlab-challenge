@@ -9,30 +9,18 @@ const FILL_FRACTION = 0.9;
 
 export type DonutSegment = { color: string; value: number };
 
-function polar(cx: number, cy: number, r: number, deg: number) {
-  const rad = (deg * Math.PI) / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function makeSegmentPath(
+/** Creates an arc path (centerline only) for stroked ring segment. Starts at top, sweep in degrees. */
+function makeArcPath(
   skia: typeof Skia,
   cx: number,
   cy: number,
-  rOut: number,
-  rIn: number,
+  r: number,
   startDeg: number,
   sweepDeg: number
 ): SkPath {
   const path = skia.Path.Make();
-  const outerRect = skia.XYWHRect(cx - rOut, cy - rOut, rOut * 2, rOut * 2);
-  const innerRect = skia.XYWHRect(cx - rIn, cy - rIn, rIn * 2, rIn * 2);
-  const startOut = polar(cx, cy, rOut, startDeg);
-  path.moveTo(startOut.x, startOut.y);
-  path.arcToOval(outerRect, startDeg, sweepDeg, false);
-  const endIn = polar(cx, cy, rIn, startDeg + sweepDeg);
-  path.lineTo(endIn.x, endIn.y);
-  path.arcToOval(innerRect, startDeg + sweepDeg, -sweepDeg, false);
-  path.close();
+  const rect = skia.XYWHRect(cx - r, cy - r, r * 2, r * 2);
+  path.addArc(rect, startDeg, sweepDeg);
   return path;
 }
 
@@ -42,12 +30,14 @@ function AnimatedSegment({
   cumulativeStart,
   fraction,
   progress,
+  strokeWidth,
 }: {
   path: SkPath;
   color: string;
   cumulativeStart: number;
   fraction: number;
   progress: ReturnType<typeof useSharedValue<number>>;
+  strokeWidth: number;
 }) {
   const end = useDerivedValue(() => {
     'worklet';
@@ -56,20 +46,35 @@ function AnimatedSegment({
     if (p >= cumulativeStart + fraction) return 1;
     return (p - cumulativeStart) / fraction;
   }, [progress, cumulativeStart, fraction]);
-  return <Path path={path} start={0} end={end} color={color} />;
+  return (
+    <Path
+      path={path}
+      start={0}
+      end={end}
+      color={color}
+      style="stroke"
+      strokeWidth={strokeWidth}
+      strokeCap="round"
+    />
+  );
 }
+
+const TRACK_COLOR = '#4E6B8A';
 
 type CategoriesDonutProps = {
   segments: DonutSegment[];
   size?: number;
+  /** When this value changes, the donut animation re-runs (e.g. pass focusKey from pager so it animates on every visit). */
+  triggerKey?: number;
 };
 
-export function CategoriesDonut({ segments, size = 56 }: CategoriesDonutProps) {
+export function CategoriesDonut({ segments, size = 56, triggerKey = 0 }: CategoriesDonutProps) {
   const progress = useSharedValue(0);
 
   useEffect(() => {
+    progress.value = 0;
     progress.value = withTiming(1, { duration: 700 });
-  }, [progress]);
+  }, [progress, triggerKey]);
 
   const total = useMemo(
     () => segments.reduce((s, seg) => s + seg.value, 0) || 1,
@@ -93,15 +98,21 @@ export function CategoriesDonut({ segments, size = 56 }: CategoriesDonutProps) {
   const cx = size / 2;
   const cy = size / 2;
   const rOut = size / 2 - 2;
-  const rIn = rOut * 0.45;
+  const rIn = Math.max(2, rOut * 0.45);
+  const rMid = (rOut + rIn) / 2;
+  const strokeWidth = rOut - rIn;
+
+  const trackPath = useMemo(() => {
+    return makeArcPath(Skia, cx, cy, rMid, TOP_ANGLE_DEG, fullSweepDeg);
+  }, [cx, cy, rMid, fullSweepDeg]);
 
   const segmentPaths = useMemo(() => {
     return segments.map((_, i) => {
       const startDeg = TOP_ANGLE_DEG + cumulative[i] * fullSweepDeg;
       const sweepDeg = fractions[i] * fullSweepDeg;
-      return makeSegmentPath(Skia, cx, cy, rOut, rIn, startDeg, sweepDeg);
+      return makeArcPath(Skia, cx, cy, rMid, startDeg, sweepDeg);
     });
-  }, [segments, cumulative, fractions, cx, cy, rOut, rIn, fullSweepDeg]);
+  }, [segments, cumulative, fractions, cx, cy, rMid, fullSweepDeg]);
 
   if (segments.length === 0) {
     return <View style={[styles.wrap, { width: size, height: size }]} />;
@@ -110,6 +121,16 @@ export function CategoriesDonut({ segments, size = 56 }: CategoriesDonutProps) {
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
       <Canvas style={StyleSheet.absoluteFill}>
+        {/* Full ring track (muted) so the donut outline is always visible */}
+        <Path
+          path={trackPath}
+          start={0}
+          end={1}
+          color={TRACK_COLOR}
+          style="stroke"
+          strokeWidth={strokeWidth}
+          strokeCap="round"
+        />
         {segmentPaths.map((path, i) => (
           <AnimatedSegment
             key={i}
@@ -118,6 +139,7 @@ export function CategoriesDonut({ segments, size = 56 }: CategoriesDonutProps) {
             cumulativeStart={cumulative[i]}
             fraction={fractions[i]}
             progress={progress}
+            strokeWidth={strokeWidth}
           />
         ))}
       </Canvas>
