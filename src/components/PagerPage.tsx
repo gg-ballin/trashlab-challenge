@@ -18,18 +18,13 @@ type Props = {
 export function PagerPage({ pageIndex, scrollPosition, scrollOffset, children }: Props) {
   const animatedStyle = useAnimatedStyle(() => {
     const progress = scrollPosition.value + scrollOffset.value;
-    const opacity = interpolate(
-      progress,
-      [pageIndex - 1, pageIndex, pageIndex + 1],
-      [0.5, 1, 0.5]
-    );
     const translateX = interpolate(
       progress,
       [pageIndex - 1, pageIndex, pageIndex + 1],
       [-PARALLAX_OFFSET, 0, PARALLAX_OFFSET]
     );
     return {
-      opacity,
+      opacity: 1,
       transform: [{ translateX }],
     };
   });

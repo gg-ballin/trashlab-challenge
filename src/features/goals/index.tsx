@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '@/core/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { getGoalsActive, getGoalsReady, getGoalsSummary } from '@/db/queries';
+import { CategoriesDonut, type DonutSegment } from '@/components/CategoriesDonut';
 
 const MONTH = 'Nov';
+const TRACK_COLOR = '#4E6B8A';
 const GOAL_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
   'car',
   'shield-checkmark',
@@ -36,6 +38,16 @@ export function GoalsScreen() {
     }
   }, []);
 
+  const donutSegments: DonutSegment[] = useMemo(() => {
+    const saved = summary.saved;
+    const toGo = Math.max(0, summary.toGo);
+    if (toGo <= 0) return [{ color: themeColors.secondary, value: saved }];
+    return [
+      { color: themeColors.secondary, value: saved },
+      { color: TRACK_COLOR, value: toGo },
+    ];
+  }, [summary.saved, summary.toGo, themeColors.secondary]);
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: themeColors.background }]}
@@ -43,27 +55,31 @@ export function GoalsScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View style={[styles.card, { backgroundColor: themeColors.surface }]}>
-        <View style={styles.summaryRow}>
-          <Text style={[styles.summaryBig, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
-            ${summary.saved.toLocaleString()} saved in {MONTH}
-          </Text>
-          <View style={styles.ringWrapper}>
-            <View
-              style={[
-                styles.ring,
-                {
-                  borderColor: themeColors.secondary,
-                  backgroundColor: themeColors.surface,
-                },
-              ]}
-            />
+        <View style={[styles.summarySection, { borderBottomColor: themeColors.border }]}>
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryBlock}>
+              <Text style={[styles.summaryValue, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
+                ${summary.saved.toLocaleString()}
+              </Text>
+              <Text style={[styles.summaryLabel, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>
+                saved in {MONTH}
+              </Text>
+            </View>
+            <View style={styles.summaryChartWrap}>
+              <CategoriesDonut segments={donutSegments} size={56} />
+            </View>
+            <View style={styles.summaryBlockRight}>
+              <Text style={[styles.summaryValue, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
+                ${Math.round(summary.toGo).toLocaleString()}
+              </Text>
+              <Text style={[styles.summaryLabel, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>
+                to go in {MONTH}
+              </Text>
+            </View>
           </View>
-          <Text style={[styles.summaryBig, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
-            ${Math.round(summary.toGo)} to go in {MONTH}
-          </Text>
         </View>
         <View style={styles.sectionHeader}>
-          <Ionicons name="chevron-down" size={16} color={themeColors.text.inverse} />
+          <Ionicons name="chevron-down" size={16} color={themeColors.text.main} />
           <Text style={[styles.sectionTitle, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>Active</Text>
         </View>
         {activeGoals.map((goal, idx) => {
@@ -128,7 +144,7 @@ export function GoalsScreen() {
           );
         })}
         <View style={[styles.sectionHeader, { marginTop: 20 }]}>
-          <Ionicons name="chevron-down" size={16} color={themeColors.text.inverse} />
+          <Ionicons name="chevron-down" size={16} color={themeColors.text.main} />
           <Text style={[styles.sectionTitle, { color: themeColors.text.main }]}>
             Ready to spend
           </Text>
@@ -140,14 +156,6 @@ export function GoalsScreen() {
           >
             <Ionicons name="heart" size={24} color={themeColors.text.main} />
             <Text style={[styles.goalName, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>{goal.name}</Text>
-            <View style={styles.readyActions}>
-              <View style={[styles.circleBtn, { backgroundColor: themeColors.surface }]}>
-                <Ionicons name="settings-outline" size={18} color={themeColors.text.main} />
-              </View>
-              <View style={[styles.circleBtn, { backgroundColor: themeColors.primary }]}>
-                <Ionicons name="add" size={24} color={themeColors.text.inverse} />
-              </View>
-            </View>
           </View>
         ))}
       </View>
@@ -163,20 +171,26 @@ const styles = StyleSheet.create({
     padding: 16,
     overflow: 'hidden',
   },
+  summarySection: {
+    paddingBottom: 16,
+    marginBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
   },
-  summaryBig: { fontSize: 15, fontWeight: '600' },
-  ringWrapper: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center' },
-  ring: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 4,
+  summaryBlock: { flex: 1 },
+  summaryChartWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
   },
+  summaryBlockRight: { flex: 1, alignItems: 'flex-end' },
+  summaryValue: { fontSize: 18 },
+  summaryLabel: { fontSize: 12, marginTop: 2 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -212,13 +226,5 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 12,
-  },
-  readyActions: { flexDirection: 'row', gap: 8, marginLeft: 'auto' },
-  circleBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

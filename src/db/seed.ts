@@ -161,9 +161,15 @@ export function seedDatabase(db: SQLiteDatabase): void {
       row.rate
     );
   }
+  seedGoalsData(db);
+  seedRecurringsData(db);
+  db.runSync('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)', 'seeded', '1');
+}
+
+function seedGoalsData(db: SQLiteDatabase): void {
   for (const row of goalsRows) {
     db.runSync(
-      'INSERT OR IGNORE INTO goals (id, name, target_amount, saved_amount, target_date, status) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT OR REPLACE INTO goals (id, name, target_amount, saved_amount, target_date, status) VALUES (?, ?, ?, ?, ?, ?)',
       row.id,
       row.name,
       row.target_amount,
@@ -172,8 +178,13 @@ export function seedDatabase(db: SQLiteDatabase): void {
       row.status
     );
   }
-  seedRecurringsData(db);
-  db.runSync('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)', 'seeded', '1');
+}
+
+export function seedGoalsIfEmpty(db: SQLiteDatabase): void {
+  const count = db.getFirstSync<{ n: number }>('SELECT COUNT(*) as n FROM goals');
+  if (count?.n === 0) {
+    seedGoalsData(db);
+  }
 }
 
 function seedRecurringsData(db: SQLiteDatabase): void {
