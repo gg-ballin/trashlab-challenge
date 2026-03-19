@@ -7,7 +7,7 @@ import { getCategoriesWithBudgets, getBudgetSummary } from '@/db/queries';
 const MONTH = 'Nov';
 
 export function CategoriesScreen() {
-  const { themeColors } = useTheme();
+  const { themeColors, fontFamily } = useTheme();
   const summary = useMemo(() => {
     try {
       return getBudgetSummary();
@@ -31,7 +31,7 @@ export function CategoriesScreen() {
     >
       <View style={[styles.card, { backgroundColor: themeColors.surface }]}>
         <View style={styles.summaryRow}>
-          <Text style={[styles.summaryText, { color: themeColors.text.main }]}>
+          <Text style={[styles.summaryText, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
             ${summary.totalSpent.toLocaleString()} spent in {MONTH}
           </Text>
           <View style={styles.doughnutPlaceholder}>
@@ -45,16 +45,16 @@ export function CategoriesScreen() {
               ]}
             />
           </View>
-          <Text style={[styles.summaryText, { color: themeColors.text.main }]}>
+          <Text style={[styles.summaryText, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
             ${summary.totalBudget.toLocaleString()} total budget
           </Text>
         </View>
         <View style={[styles.tableHeader, { borderBottomColor: themeColors.border }]}>
-          <Text style={[styles.tableHeaderText, { color: themeColors.text.secondary }]}>
+          <Text style={[styles.tableHeaderText, { color: themeColors.text.secondary, fontFamily: fontFamily.semiBold }]}>
             SPENT
           </Text>
           <Ionicons name="help-circle-outline" size={16} color={themeColors.text.secondary} />
-          <Text style={[styles.tableHeaderText, { color: themeColors.text.secondary }]}>
+          <Text style={[styles.tableHeaderText, { color: themeColors.text.secondary, fontFamily: fontFamily.semiBold }]}>
             BUDGET
           </Text>
         </View>
@@ -62,7 +62,7 @@ export function CategoriesScreen() {
           <View key={group.id} style={styles.group}>
             <View style={styles.groupHeader}>
               <Ionicons name="chevron-down" size={16} color={themeColors.text.inverse} />
-              <Text style={[styles.groupName, { color: themeColors.text.main }]}>{group.name}</Text>
+              <Text style={[styles.groupName, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>{group.name}</Text>
             </View>
             {group.items.map((item) => {
               const over = item.spent > item.budget;
@@ -73,10 +73,10 @@ export function CategoriesScreen() {
                   style={[styles.categoryRow, { borderBottomColor: themeColors.border }]}
                 >
                   <View style={[styles.dot, { backgroundColor: group.dot_color }]} />
-                  <Text style={[styles.categoryName, { color: themeColors.text.main }]}>
+                  <Text style={[styles.categoryName, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
                     {item.name}
                   </Text>
-                  <Text style={[styles.amount, { color: themeColors.text.main }]}>
+                  <Text style={[styles.amount, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
                     ${item.spent.toLocaleString()}
                   </Text>
                   <View style={[styles.progressBarBg, { backgroundColor: themeColors.border }]}>
@@ -90,7 +90,7 @@ export function CategoriesScreen() {
                       ]}
                     />
                   </View>
-                  <Text style={[styles.amount, { color: themeColors.text.main }]}>
+                  <Text style={[styles.amount, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
                     ${item.budget.toLocaleString()}
                   </Text>
                 </View>

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue } from 'react-native-reanimated';
@@ -14,6 +14,7 @@ import { DashboardScreen } from '@/features/dashboard';
 import { CategoriesScreen } from '@/features/categories';
 import { RecurringsScreen } from '@/features/recurrings';
 import { GoalsScreen } from '@/features/goals';
+import { theme } from 'theme';
 
 const logoSource = require('@/../assets/images/image.png');
 
@@ -44,25 +45,45 @@ export default function Index() {
 
   const headerBg = { backgroundColor: themeColors.primary };
 
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
   const toggleTheme = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.88,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        tension: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
     setColorScheme(colorScheme === 'light' ? 'dark' : 'light');
-  }, [colorScheme, setColorScheme]);
+  }, [colorScheme, setColorScheme, scaleAnim]);
 
   return (
     <View style={styles.container}>
       <View style={[styles.headerSection, headerBg, { paddingTop: insets.top }]}>
         <View style={[styles.header, headerBg]}>
-          <Image source={logoSource} contentFit="contain" style={styles.logo} />
+          <View style={styles.containerLogo}>
+            <Image source={logoSource} contentFit="contain" style={styles.logo} />
+            <Text style={styles.logoText}>TrashLab Copilot</Text>
+          </View>
           <Pressable
             onPress={toggleTheme}
-            style={styles.themeToggle}
+            style={[styles.themeToggle, styles.themeToggleButton]}
             hitSlop={8}
           >
-            <Ionicons
-              name={colorScheme === 'light' ? 'moon-outline' : 'sunny-outline'}
-              size={24}
-              color={themeColors.text.inverse}
-            />
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <Ionicons
+                name={colorScheme === 'light' ? 'moon-outline' : 'sunny-outline'}
+                size={22}
+                color={themeColors.primary}
+              />
+            </Animated.View>
           </Pressable>
         </View>
         <View style={[styles.segmentBar, headerBg]}>
@@ -70,7 +91,6 @@ export default function Index() {
             selectedIndex={selectedIndex}
             onSelectIndex={onSelectIndex}
             onPrimaryBackground
-            selectedPillSecondary
           />
         </View>
       </View>
@@ -110,27 +130,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerSection: {
-    // Primary blue from top of screen (covers SafeAreaView) through segment bar
-  },
+  headerSection: {},
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingLeft: 8,
-    paddingRight: 16,
+    paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  containerLogo: {
+    marginLeft: -20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   logo: {
-    width: 120,
-    height: 40,
-    marginLeft: 0,
+    height: 48,
+    width: 90,
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  segmentBar: {
+    paddingHorizontal: 0,
   },
   themeToggle: {
     padding: 4,
   },
-  segmentBar: {
-    paddingHorizontal: 0,
+  themeToggleButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 8,
   },
   pager: {
     flex: 1,

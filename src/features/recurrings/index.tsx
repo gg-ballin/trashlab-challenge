@@ -26,7 +26,7 @@ const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export function RecurringsScreen() {
-  const { themeColors } = useTheme();
+  const { themeColors, fontFamily } = useTheme();
   const summary = useMemo(() => {
     try {
       return getRecurringsSummary();
@@ -50,7 +50,7 @@ export function RecurringsScreen() {
     >
       <View style={[styles.card, { backgroundColor: themeColors.surface }]}>
         <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLeft, { color: themeColors.text.main }]}>
+          <Text style={[styles.summaryLeft, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
             ${summary.leftToPay.toFixed(0)} left to pay
           </Text>
           <View style={styles.ringWrapper}>
@@ -64,11 +64,11 @@ export function RecurringsScreen() {
               ]}
             />
           </View>
-          <Text style={[styles.summaryRight, { color: themeColors.text.main }]}>
+          <Text style={[styles.summaryRight, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
             ${summary.paidSoFar.toLocaleString()} paid so far
           </Text>
         </View>
-        <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>
+        <Text style={[styles.sectionLabel, { color: themeColors.text.secondary, fontFamily: fontFamily.semiBold }]}>
           THIS MONTH
         </Text>
         {items.map((item) => {
@@ -82,7 +82,7 @@ export function RecurringsScreen() {
               key={item.id}
               style={[styles.row, { borderBottomColor: themeColors.border }]}
             >
-              <Text style={[styles.date, { color: themeColors.text.main }]}>
+              <Text style={[styles.date, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
                 {formatDueDay(item.due_day)}
               </Text>
               <Ionicons
@@ -91,10 +91,10 @@ export function RecurringsScreen() {
                 color={themeColors.text.main}
                 style={styles.rowIcon}
               />
-              <Text style={[styles.name, { color: themeColors.text.main }]} numberOfLines={1}>
+              <Text style={[styles.name, { color: themeColors.text.main, fontFamily: fontFamily.regular }]} numberOfLines={1}>
                 {item.name}
               </Text>
-              <Text style={[styles.amount, { color: themeColors.text.main }]}>
+              <Text style={[styles.amount, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
                 ${amountStr}
               </Text>
               {item.paid === 1 && (

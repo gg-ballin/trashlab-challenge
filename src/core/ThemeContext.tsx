@@ -1,11 +1,12 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
-import { getThemeColors, type ColorScheme, type ThemeColors } from './theme';
+import { fontFamily, getThemeColors, type ColorScheme, type ThemeColors } from './theme';
 import { getStoredColorScheme, setStoredColorScheme } from './storage';
 
 type ThemeContextValue = {
   colorScheme: ColorScheme;
   themeColors: ThemeColors;
+  fontFamily: typeof fontFamily;
   setColorScheme: (scheme: ColorScheme) => void;
 };
 
@@ -25,7 +26,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const themeColors = useMemo(() => getThemeColors(colorScheme), [colorScheme]);
   const value = useMemo(
-    () => ({ colorScheme, themeColors, setColorScheme }),
+    () => ({ colorScheme, themeColors, fontFamily, setColorScheme }),
     [colorScheme, themeColors, setColorScheme]
   );
   return (

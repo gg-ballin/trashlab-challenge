@@ -8,8 +8,8 @@ import {
   getBudgetsForDashboard,
   markTransactionReviewed,
   type ToReviewTransaction,
-  type BudgetWithCategory,
 } from '@/db/queries';
+import { BudgetChart } from '@/components/BudgetChart';
 
 function useDashboardData() {
   const [toReview, setToReview] = useState<ToReviewTransaction[]>(() => {
@@ -43,7 +43,7 @@ function useDashboardData() {
 }
 
 export function DashboardScreen() {
-  const { themeColors } = useTheme();
+  const { themeColors, fontFamily } = useTheme();
   const { summary, toReview, budgets, handleMarkReviewed } = useDashboardData();
   const overTotal = Math.max(0, summary.totalSpent - summary.totalBudget);
 
@@ -55,37 +55,40 @@ export function DashboardScreen() {
     >
       <View style={[styles.budgetCard, { backgroundColor: themeColors.surface }]}>
         <View style={styles.budgetHeader}>
-          <Text style={[styles.budgetText, { color: themeColors.text.main }]}>
-            ${summary.left.toLocaleString()} left out of ${summary.totalBudget.toLocaleString()} budgeted
-          </Text>
-          <Ionicons name="help-circle-outline" size={20} color={themeColors.text.secondary} />
+          <View style={styles.budgetHeaderTextWrap}>
+            <Text style={[styles.budgetPrimary, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
+              ${summary.left.toLocaleString()} left
+            </Text>
+            <Text style={[styles.budgetSecondary, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>
+              out of ${summary.totalBudget.toLocaleString()} budgeted
+            </Text>
+          </View>
+          <View style={styles.budgetHelp}>
+            <Ionicons name="help-circle-outline" size={20} color={themeColors.text.secondary} />
+          </View>
         </View>
-        <View style={styles.graphPlaceholder}>
-          <View style={[styles.graphBar, { backgroundColor: '#059669', flex: 3 }]} />
-          <View style={[styles.graphBar, { backgroundColor: '#EAB308', flex: 1 }]} />
-          <View style={[styles.graphBar, { backgroundColor: '#DC2626', flex: 0.5 }]} />
-        </View>
-        {overTotal > 0 && (
-          <Text style={[styles.overLabel, { color: themeColors.text.secondary }]}>
-            ${overTotal.toFixed(0)} over
-          </Text>
-        )}
+        <BudgetChart
+          totalBudget={summary.totalBudget}
+          totalSpent={summary.totalSpent}
+          over={overTotal}
+          fontFamily={fontFamily.semiBold}
+        />
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: themeColors.text.main }]}>TO REVIEW</Text>
-        <Text style={[styles.sectionLink, { color: themeColors.secondary }]}>View all &gt;</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>TO REVIEW</Text>
+        <Text style={[styles.sectionLink, { color: themeColors.secondary, fontFamily: fontFamily.regular }]}>View all &gt;</Text>
       </View>
       {toReview.length > 0 ? (
         toReview.slice(0, 1).map((t) => (
           <View key={t.id} style={[styles.reviewCard, { backgroundColor: themeColors.surface }]}>
-            <Text style={[styles.reviewSub, { color: themeColors.text.secondary }]}>So far today</Text>
-            <Text style={[styles.reviewMerchant, { color: themeColors.text.main }]}>{t.name}</Text>
+            <Text style={[styles.reviewSub, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>So far today</Text>
+            <Text style={[styles.reviewMerchant, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>{t.name}</Text>
             <View style={styles.reviewMeta}>
-              <Text style={[styles.reviewTag, { color: '#DC2626' }]}>
+              <Text style={[styles.reviewTag, { color: '#DC2626', fontFamily: fontFamily.semiBold }]}>
                 {(t.category_name ?? 'UNCATEGORIZED').toUpperCase()}
               </Text>
-              <Text style={[styles.reviewAmount, { color: themeColors.text.main }]}>
+              <Text style={[styles.reviewAmount, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
                 ${t.amount.toFixed(2)}
               </Text>
               <View style={[styles.reviewDot, { backgroundColor: themeColors.primary }]} />
@@ -94,23 +97,23 @@ export function DashboardScreen() {
               style={[styles.reviewButton, { backgroundColor: themeColors.primary }]}
               onPress={() => handleMarkReviewed(t.id)}
             >
-              <Text style={[styles.reviewButtonText, { color: themeColors.text.inverse }]}>
+              <Text style={[styles.reviewButtonText, { color: themeColors.text.inverse, fontFamily: fontFamily.semiBold }]}>
                 MARK AS REVIEWED
               </Text>
             </Pressable>
           </View>
         ))
-      ) : (
+        ) : (
         <View style={[styles.reviewCard, { backgroundColor: themeColors.surface }]}>
-          <Text style={[styles.reviewMerchant, { color: themeColors.text.secondary }]}>
+          <Text style={[styles.reviewMerchant, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>
             No transactions to review
           </Text>
         </View>
       )}
 
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: themeColors.text.main }]}>BUDGETS</Text>
-        <Text style={[styles.sectionLink, { color: themeColors.secondary }]}>Categories &gt;</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>BUDGETS</Text>
+        <Text style={[styles.sectionLink, { color: themeColors.secondary, fontFamily: fontFamily.regular }]}>Categories &gt;</Text>
       </View>
       <ScrollView
         horizontal
@@ -134,7 +137,7 @@ export function DashboardScreen() {
               >
                 <Text style={styles.emoji}>{b.emoji}</Text>
               </View>
-              <Text style={[styles.budgetCircleLabel, { color: themeColors.text.main }]}>
+              <Text style={[styles.budgetCircleLabel, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
                 {label}
               </Text>
             </View>
@@ -143,13 +146,13 @@ export function DashboardScreen() {
       </ScrollView>
 
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: themeColors.text.main }]}>UPCOMING</Text>
-        <Text style={[styles.sectionLink, { color: themeColors.secondary }]}>Recurrings &gt;</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>UPCOMING</Text>
+        <Text style={[styles.sectionLink, { color: themeColors.secondary, fontFamily: fontFamily.regular }]}>Recurrings &gt;</Text>
       </View>
       <View style={[styles.upcomingCard, { backgroundColor: themeColors.surface }]}>
-        <Text style={[styles.upcomingItem, { color: themeColors.text.secondary }]}>tomorrow</Text>
-        <Text style={[styles.upcomingItem, { color: themeColors.text.secondary }]}>in a week</Text>
-        <Text style={[styles.upcomingItem, { color: themeColors.text.secondary }]}>in 14 days</Text>
+        <Text style={[styles.upcomingItem, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>tomorrow</Text>
+        <Text style={[styles.upcomingItem, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>in a week</Text>
+        <Text style={[styles.upcomingItem, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>in 14 days</Text>
       </View>
     </ScrollView>
   );
@@ -165,19 +168,14 @@ const styles = StyleSheet.create({
   },
   budgetHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  budgetText: { fontSize: 16, fontWeight: '600' },
-  graphPlaceholder: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 40,
-    gap: 4,
-  },
-  graphBar: { borderRadius: 4 },
-  overLabel: { fontSize: 12, marginTop: 6 },
+  budgetHeaderTextWrap: { flex: 1 },
+  budgetPrimary: { fontSize: 22, fontWeight: '700' },
+  budgetSecondary: { fontSize: 14, marginTop: 2 },
+  budgetHelp: { marginLeft: 8 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',

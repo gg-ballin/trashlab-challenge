@@ -13,7 +13,7 @@ const GOAL_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
 ];
 
 export function GoalsScreen() {
-  const { themeColors } = useTheme();
+  const { themeColors, fontFamily } = useTheme();
   const summary = useMemo(() => {
     try {
       return getGoalsSummary();
@@ -44,7 +44,7 @@ export function GoalsScreen() {
     >
       <View style={[styles.card, { backgroundColor: themeColors.surface }]}>
         <View style={styles.summaryRow}>
-          <Text style={[styles.summaryBig, { color: themeColors.text.main }]}>
+          <Text style={[styles.summaryBig, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
             ${summary.saved.toLocaleString()} saved in {MONTH}
           </Text>
           <View style={styles.ringWrapper}>
@@ -58,13 +58,13 @@ export function GoalsScreen() {
               ]}
             />
           </View>
-          <Text style={[styles.summaryBig, { color: themeColors.text.main }]}>
+          <Text style={[styles.summaryBig, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
             ${Math.round(summary.toGo)} to go in {MONTH}
           </Text>
         </View>
         <View style={styles.sectionHeader}>
           <Ionicons name="chevron-down" size={16} color={themeColors.text.inverse} />
-          <Text style={[styles.sectionTitle, { color: themeColors.text.main }]}>Active</Text>
+          <Text style={[styles.sectionTitle, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>Active</Text>
         </View>
         {activeGoals.map((goal, idx) => {
           const progress = goal.target_amount > 0 ? goal.saved_amount / goal.target_amount : 0;
@@ -82,7 +82,7 @@ export function GoalsScreen() {
                 style={styles.goalIcon}
               />
               <View style={styles.goalMain}>
-                <Text style={[styles.goalName, { color: themeColors.text.main }]}>{goal.name}</Text>
+                <Text style={[styles.goalName, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>{goal.name}</Text>
                 {useBar ? (
                   <View style={[styles.progressBarBg, { backgroundColor: themeColors.border }]}>
                     <View
@@ -112,7 +112,7 @@ export function GoalsScreen() {
                 )}
               </View>
               <View style={styles.goalRight}>
-                <Text style={[styles.goalAmount, { color: themeColors.text.main }]}>
+                <Text style={[styles.goalAmount, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
                   ${goal.saved_amount.toLocaleString()} / ${goal.target_amount.toLocaleString()}
                 </Text>
                 {goal.target_date && (
@@ -139,7 +139,7 @@ export function GoalsScreen() {
             style={[styles.readyRow, { borderBottomColor: themeColors.border }]}
           >
             <Ionicons name="heart" size={24} color={themeColors.text.main} />
-            <Text style={[styles.goalName, { color: themeColors.text.main }]}>{goal.name}</Text>
+            <Text style={[styles.goalName, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>{goal.name}</Text>
             <View style={styles.readyActions}>
               <View style={[styles.circleBtn, { backgroundColor: themeColors.surface }]}>
                 <Ionicons name="settings-outline" size={18} color={themeColors.text.main} />

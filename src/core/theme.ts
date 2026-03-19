@@ -1,10 +1,18 @@
+/** Inter font family names (load with @expo-google-fonts/inter in root layout) */
+export const fontFamily = {
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semiBold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+} as const;
+
 export const theme = {
   light: {
     colors: {
       primary: '#2D3494',
       secondary: '#00D1FF',
       background: '#FFFFFF',
-      surface: '#F8F9FC',
+      surface: '#E8EAEF',
       text: {
         main: '#1A1A1A',
         secondary: '#4B5563',
