@@ -172,9 +172,14 @@ export function seedDatabase(db: SQLiteDatabase): void {
       row.status
     );
   }
+  seedRecurringsData(db);
+  db.runSync('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)', 'seeded', '1');
+}
+
+function seedRecurringsData(db: SQLiteDatabase): void {
   for (const row of recurringsRows) {
     db.runSync(
-      'INSERT OR IGNORE INTO recurrings (id, name, amount, due_day, icon, paid, month) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      'INSERT OR REPLACE INTO recurrings (id, name, amount, due_day, icon, paid, month) VALUES (?, ?, ?, ?, ?, ?, ?)',
       row.id,
       row.name,
       row.amount,
@@ -184,5 +189,11 @@ export function seedDatabase(db: SQLiteDatabase): void {
       row.month
     );
   }
-  db.runSync('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)', 'seeded', '1');
+}
+
+export function seedRecurringsIfEmpty(db: SQLiteDatabase): void {
+  const count = db.getFirstSync<{ n: number }>('SELECT COUNT(*) as n FROM recurrings');
+  if (count?.n === 0) {
+    seedRecurringsData(db);
+  }
 }

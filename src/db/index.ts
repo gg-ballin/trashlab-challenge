@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import { SCHEMA_SQL } from './schema';
-import { seedDatabase } from './seed';
+import { seedDatabase, seedRecurringsIfEmpty } from './seed';
 
 const DB_NAME = 'trashlab.db';
 
@@ -21,6 +21,8 @@ export function initDb(): SQLite.SQLiteDatabase {
   const row = database.getFirstSync<{ value: string }>("SELECT value FROM meta WHERE key = ?", 'seeded');
   if (!row?.value) {
     seedDatabase(database);
+  } else {
+    seedRecurringsIfEmpty(database);
   }
   return database;
 }
