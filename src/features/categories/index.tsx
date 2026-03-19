@@ -1,13 +1,23 @@
-import { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useTheme } from '@/core/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { getCategoriesWithBudgets, getBudgetSummary } from '@/db/queries';
+import { CategoriesDonut, type DonutSegment } from '@/components/CategoriesDonut';
 
 const MONTH = 'Nov';
 
+function progressBarColor(pct: number): string {
+  if (pct >= 100) return '#DC2626';
+  if (pct >= 80) return '#F97316';
+  return '#059669';
+}
+
 export function CategoriesScreen() {
   const { themeColors, fontFamily } = useTheme();
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+  const didInitExpand = useRef(false);
+
   const summary = useMemo(() => {
     try {
       return getBudgetSummary();
@@ -23,32 +33,63 @@ export function CategoriesScreen() {
     }
   }, []);
 
+  const donutSegments: DonutSegment[] = useMemo(
+    () =>
+      groups.map((g) => ({
+        color: g.dot_color,
+        value: g.items.reduce((s, i) => s + i.spent, 0),
+      })),
+    [groups]
+  );
+
+  useEffect(() => {
+    if (groups.length > 0 && !didInitExpand.current) {
+      didInitExpand.current = true;
+      setExpandedIds(new Set(groups.map((g) => g.id)));
+    }
+  }, [groups]);
+
+  const toggleExpanded = useCallback((id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: themeColors.background }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <View style={[styles.card, { backgroundColor: themeColors.surface }]}>
-        <View style={styles.summaryRow}>
-          <Text style={[styles.summaryText, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
-            ${summary.totalSpent.toLocaleString()} spent in {MONTH}
-          </Text>
-          <View style={styles.doughnutPlaceholder}>
-            <View
-              style={[
-                styles.doughnutRing,
-                {
-                  borderColor: themeColors.secondary,
-                  backgroundColor: themeColors.surface,
-                },
-              ]}
-            />
+      <View style={[styles.card, { backgroundColor: themeColors.surface, marginBottom: 16 }]}>
+        <View style={[styles.summarySection,]}>
+          <View style={styles.summaryRow}>
+            <View>
+              <Text style={[styles.summaryValue, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
+                ${summary.totalSpent.toLocaleString()}
+              </Text>
+              <Text style={[styles.summaryLabel, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>
+                spent in {MONTH}
+              </Text>
+            </View>
+            <View>
+              <CategoriesDonut segments={donutSegments} size={56} />
+            </View>
+            <View>
+              <Text style={[styles.summaryValue, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
+                ${summary.totalBudget.toLocaleString()}
+              </Text>
+              <Text style={[styles.summaryLabel, { color: themeColors.text.secondary, fontFamily: fontFamily.regular }]}>
+                total budget
+              </Text>
+            </View>
           </View>
-          <Text style={[styles.summaryText, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
-            ${summary.totalBudget.toLocaleString()} total budget
-          </Text>
         </View>
+      </View>
+      <View style={[styles.card, { backgroundColor: themeColors.surface }]}>
         <View style={[styles.tableHeader, { borderBottomColor: themeColors.border }]}>
           <Text style={[styles.tableHeaderText, { color: themeColors.text.secondary, fontFamily: fontFamily.semiBold }]}>
             SPENT
@@ -58,46 +99,57 @@ export function CategoriesScreen() {
             BUDGET
           </Text>
         </View>
-        {groups.map((group) => (
-          <View key={group.id} style={styles.group}>
-            <View style={styles.groupHeader}>
-              <Ionicons name="chevron-down" size={16} color={themeColors.text.inverse} />
-              <Text style={[styles.groupName, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>{group.name}</Text>
-            </View>
-            {group.items.map((item) => {
-              const over = item.spent > item.budget;
-              const pct = item.budget > 0 ? Math.min(100, (item.spent / item.budget) * 100) : 0;
-              return (
-                <View
-                  key={item.id}
-                  style={[styles.categoryRow, { borderBottomColor: themeColors.border }]}
-                >
-                  <View style={[styles.dot, { backgroundColor: group.dot_color }]} />
-                  <Text style={[styles.categoryName, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
-                    {item.name}
-                  </Text>
-                  <Text style={[styles.amount, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
-                    ${item.spent.toLocaleString()}
-                  </Text>
-                  <View style={[styles.progressBarBg, { backgroundColor: themeColors.border }]}>
+        {groups.map((group) => {
+          const isExpanded = expandedIds.has(group.id);
+          return (
+            <View key={group.id} style={styles.group}>
+              <Pressable
+                onPress={() => toggleExpanded(group.id)}
+                style={styles.groupHeader}
+              >
+                <Ionicons
+                  name={isExpanded ? 'chevron-down' : 'chevron-forward'}
+                  size={16}
+                  color={themeColors.text.main}
+                />
+                <Text style={[styles.groupName, { color: themeColors.text.main, fontFamily: fontFamily.semiBold }]}>
+                  {group.name}
+                </Text>
+              </Pressable>
+              {isExpanded &&
+                group.items.map((item) => {
+                  const pct = item.budget > 0 ? Math.min(100, (item.spent / item.budget) * 100) : 0;
+                  const barColor = progressBarColor(pct);
+                  const fillPct = item.budget > 0 ? Math.min(100, (item.spent / item.budget) * 100) : 0;
+                  return (
                     <View
-                      style={[
-                        styles.progressBarFill,
-                        {
-                          width: `${pct}%`,
-                          backgroundColor: over ? '#DC2626' : '#059669',
-                        },
-                      ]}
-                    />
-                  </View>
-                  <Text style={[styles.amount, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
-                    ${item.budget.toLocaleString()}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        ))}
+                      key={item.id}
+                      style={[styles.categoryRow, { borderBottomColor: themeColors.border }]}
+                    >
+                      <View style={[styles.dot, { backgroundColor: group.dot_color }]} />
+                      <Text style={[styles.categoryName, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
+                        {item.name}
+                      </Text>
+                      <Text style={[styles.amount, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
+                        ${item.spent.toLocaleString()}
+                      </Text>
+                      <View style={[styles.progressBarBg, { backgroundColor: themeColors.border }]}>
+                        <View
+                          style={[
+                            styles.progressBarFill,
+                            { width: `${fillPct}%`, backgroundColor: barColor },
+                          ]}
+                        />
+                      </View>
+                      <Text style={[styles.amount, { color: themeColors.text.main, fontFamily: fontFamily.regular }]}>
+                        ${item.budget.toLocaleString()}
+                      </Text>
+                    </View>
+                  );
+                })}
+            </View>
+          );
+        })}
       </View>
     </ScrollView>
   );
@@ -111,20 +163,18 @@ const styles = StyleSheet.create({
     padding: 16,
     overflow: 'hidden',
   },
+  summarySection: {
+    paddingBottom: 16,
+    marginBottom: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
   },
-  summaryText: { fontSize: 14 },
-  doughnutPlaceholder: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  doughnutRing: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 4,
-  },
+  summaryValue: { fontSize: 18 },
+  summaryLabel: { fontSize: 12, marginTop: 2 },
   tableHeader: {
     flexDirection: 'row',
     alignItems: 'center',
